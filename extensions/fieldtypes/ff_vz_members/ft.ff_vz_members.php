@@ -10,6 +10,8 @@ if ( ! defined('EXT')) exit('Invalid file request');
  * @author    Eli Van Zoeren <eli@elivz.com>
  * @copyright Copyright (c) 2009 Eli Van Zoeren
  * @license   http://creativecommons.org/licenses/by-sa/3.0/ Attribution-Share Alike 3.0 Unported
+ *            Some small bits of code here and there were borrowed from the
+ *            Checkbox Group fieldtype included with FieldFrame.
  */
  
 class Ff_vz_members extends Fieldframe_Fieldtype {
@@ -124,9 +126,6 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 					ORDER BY 
 						exp_member_groups.group_id ASC, exp_members.screen_name ASC ");
     
-    // Convert the list of selected members into an array
-    $selected_members = explode(',', $selected_members);
-    
     $r = '';
     $current_group = -1;
     
@@ -150,6 +149,9 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 			    . NBS.$member['screen_name']
 			    . '</label> ';
 		}
+		
+		
+		$r .= $DSP->input_hidden($field_name.'[]', 'temp');
     
     // Clear the floats
     $r .= '<div style="clear:left"></div>';
@@ -181,7 +183,9 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	 */
 	function save_field($field_data, $field_settings)
 	{
-
+		// Remove the temporary element
+		@array_pop($field_data);
+		return $field_data;
 	}
 
 
@@ -190,9 +194,82 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	 */
 	function save_cell($cell_data, $cell_settings)
 	{
-
+    return $this->save_field($cell_data, $cell_settings);
 	}
 
+
+  /**
+   * Get names of a list of members
+   */
+  function _get_member_names($members, $orderby, $sort)
+  {
+    global $DB;
+    
+    // Prepare parameters for SQL query
+    $member_list = ($members) ? implode(',', $members) : -1;
+    $sort = (strtolower($sort) == 'desc') ? 'DESC' : 'ASC';
+    $orderby = ($orderby == 'username' || $orderby == 'screen_name' || $orderby == 'group_id') ? $orderby : 'member_id';
+    
+    // Get the names of the members
+		$query = $DB->query("
+					SELECT member_id, group_id, username, screen_name
+					FROM exp_members 
+					WHERE member_id IN ($member_list)
+					ORDER BY $orderby $sort
+					");
+		
+		return $query->result;
+  }
+
+	/**
+	 * Display Tag
+	 */
+	function display_tag($params, $tagdata, $field_data, $field_settings)
+	{
+    if (!$tagdata) // Single tag
+    {
+      $separator = ($params['separator']) ? $params['separator'] : '|';
+		  return implode($separator, $field_data);
+		}
+		else // Tag pair
+		{
+		  global $TMPL;
+		  
+		  // Get the member info
+		  $members = $this->_get_member_names($field_data, $params['orderby'], $params['sort']);
+		  
+			// Prepare for {switch} and {count} tags
+			$this->prep_iterators($tagdata);
+		  
+		  $r = '';
+		  
+			foreach($members as $member)
+			{
+				// Make a copy of the tagdata
+				$member_tag_data = $tagdata;
+
+				// Replace the variables
+				$member_tag_data = $TMPL->swap_var_single('id', $member['member_id'], $member_tag_data);
+				$member_tag_data = $TMPL->swap_var_single('group', $member['group_id'], $member_tag_data);
+				$member_tag_data = $TMPL->swap_var_single('username', $member['username'], $member_tag_data);
+				$member_tag_data = $TMPL->swap_var_single('screen_name', $member['screen_name'], $member_tag_data);
+
+				// Parse {switch} and {count} tags
+				$this->parse_iterators($member_tag_data);
+
+				$r .= $member_tag_data;
+			}
+		  
+		  // Backsapce parameter
+		  if ($params['backspace'])
+			{
+				$r = substr($r, 0, -$params['backspace']);
+			}
+			
+			return $r;
+		}
+	}
+	
 }
 
 
