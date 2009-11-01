@@ -139,11 +139,11 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 
 				// Output the group header
         $r .= '<div style="clear:left"></div>';
-				$r .= $SD->label('<strong>'.$member['group_title'].'</strong>');
+				$r .= $SD->label('<strong>'.$member['group_title'].':</strong>');
 			}
       
       // Output the checkbox
-			$checked = in_array($member['member_id'], $selected_members) ? 1 : 0;
+			$checked = (is_array($selected_members) && in_array($member['member_id'], $selected_members)) ? 1 : 0;
 			$r .= '<label style="display:block; float:left; margin:3px 15px 7px 0; white-space:nowrap;">'
 			    . $DSP->input_checkbox($field_name.'[]', $member['member_id'], $checked)
 			    . NBS.$member['screen_name']
