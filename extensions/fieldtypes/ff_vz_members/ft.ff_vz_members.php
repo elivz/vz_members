@@ -23,7 +23,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	var $info = array(
 		'name'             => 'VZ Members',
 		'version'          => '0.9',
-		'desc'             => 'Multi-select list of site members',
+		'desc'             => 'Select members from one or more member groups',
 		'docs_url'         => 'http://elivz.com/blog/single/vz_members/',
 		'versions_xml_url' => 'http://elivz.com/files/version.xml'
 	);
