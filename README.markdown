@@ -43,9 +43,9 @@ If you need more control over the output, use the tag pair.
 
 `group_id` - The id of the group to which the current member belongs.
 
-`row_count` - The number of the current iteration.
+`count` - The number of the current iteration.
 
-`total_rows` - The total number of members selected.
+`total` - The total number of members selected.
 
 `switch="odd|even"` - Switch between multiple values each time through the loop.
 

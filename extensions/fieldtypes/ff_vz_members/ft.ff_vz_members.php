@@ -253,6 +253,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 				$member_tag_data = $TMPL->swap_var_single('group', $member['group_id'], $member_tag_data);
 				$member_tag_data = $TMPL->swap_var_single('username', $member['username'], $member_tag_data);
 				$member_tag_data = $TMPL->swap_var_single('screen_name', $member['screen_name'], $member_tag_data);
+				$member_tag_data = $TMPL->swap_var_single('total', count($members), $member_tag_data);
 
 				// Parse {switch} and {count} tags
 				$this->parse_iterators($member_tag_data);
