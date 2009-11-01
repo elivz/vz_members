@@ -32,38 +32,71 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	);
     
 	var $default_site_settings = array();
+	
+	var $default_field_settings = array(
+		'member_groups'   => array()
+	);
 
-
+	var $default_cell_settings = array(
+		'member_groups'   => array()
+	);
+  
+  /**
+   * Member Groups Select
+   */
+  function _member_groups_select($selected_groups)
+  {
+		global $DB, $DSP;
+		
+   	// Initialize a new instance of SettingsDisplay
+    $SD = new Fieldframe_SettingsDisplay();
+		$r = $SD->label('member_groups_label');
+		
+    // Get the available member groups
+		$member_groups = $DB->query("SELECT group_title, group_id FROM exp_member_groups");
+    
+    // Construct the select list of member groups
+		$r .= $DSP->input_select_header('member_groups[]', 'y', ($member_groups->num_rows < 10 ? $member_groups->num_rows : 10));
+		foreach($member_groups->result as $member_group)
+		{
+			$selected = in_array($member_group['group_id'], $selected_groups) ? 1 : 0;
+			$r .= $DSP->input_select_option($member_group['group_id'], $member_group['group_title'], $selected);
+		}
+		$r .= $DSP->input_select_footer();
+		
+		return $r;
+  }
+  
+  
 	/**
-	 * Display Site Settings
+	 * Display Field Settings
 	 */
-	function display_site_settings()
+	function display_field_settings($field_settings)
 	{
-
+		return array('cell2' => $this->_member_groups_select($field_settings['member_groups']));
+	}
+	
+    
+	/**
+	 * Display Cell Settings
+	 */
+	function display_cell_settings($cell_settings)
+	{
+		return $this->_member_groups_select($cell_settings['member_groups']);
 	}
 	
     
 	/**
 	 * Display Field
-	 * 
-	 * @param  string  $field_name      The field's name
-	 * @param  mixed   $field_data      The field's current value
-	 * @param  array   $field_settings  The field's settings
-	 * @return string  The field's HTML
 	 */
 	function display_field($field_name, $field_data, $field_settings)
 	{
-		
+    
 	}
 	
     
 	/**
 	 * Display Cell
-	 * 
-	 * @param  string  $cell_name      The cell's name
-	 * @param  mixed   $cell_data      The cell's current value
-	 * @param  array   $cell_settings  The cell's settings
-	 * @return string  The field's HTML
 	 */
 	function display_cell($cell_name, $cell_data, $cell_settings)
 	{
@@ -73,9 +106,6 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 
 	/**
 	 * Save Field
-	 * 
-	 * @param  string  $field_data		The field's post data
-	 * @param  array  $field_settings	The field settings
 	 */
 	function save_field($field_data, $field_settings)
 	{
@@ -85,9 +115,6 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 
 	/**
 	 * Save Cell
-	 * 
-	 * @param  string  $cell_data		The field's post data
-	 * @param  array  $fcell_settings	The field settings
 	 */
 	function save_cell($cell_data, $cell_settings)
 	{
