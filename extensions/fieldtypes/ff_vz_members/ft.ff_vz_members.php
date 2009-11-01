@@ -36,12 +36,20 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	var $default_site_settings = array();
 	
 	var $default_field_settings = array(
-		'member_groups'   => array()
+		'member_groups' => array(),
+		'mode'          => 'multiple'
 	);
 
 	var $default_cell_settings = array(
-		'member_groups'   => array()
+		'member_groups' => array(),
+		'mode'          => 'single'
 	);
+
+	var $modes = array(
+		'single'    => 'mode_single',
+		'multiple'  => 'mode_multiple'
+	);
+	
   
   /**
    * Member Groups Select
@@ -50,15 +58,11 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
   {
 		global $DB, $DSP;
 		
-   	// Initialize a new instance of SettingsDisplay
-    $SD = new Fieldframe_SettingsDisplay();
-		$r = $SD->label('member_groups_label');
-		
     // Get the available member groups
 		$member_groups = $DB->query("SELECT group_title, group_id FROM exp_member_groups");
     
     // Construct the select list of member groups
-		$r .= $DSP->input_select_header('member_groups[]', 'y', ($member_groups->num_rows < 10 ? $member_groups->num_rows : 10));
+		$r = $DSP->input_select_header('member_groups[]', 'y', ($member_groups->num_rows < 10 ? $member_groups->num_rows : 10));
 		foreach($member_groups->result as $member_group)
 		{
 			$selected = in_array($member_group['group_id'], $selected_groups) ? 1 : 0;
@@ -75,7 +79,16 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	 */
 	function display_field_settings($field_settings)
 	{
-		return array('cell2' => $this->_member_groups_select($field_settings['member_groups']));
+  	// Initialize a new instance of SettingsDisplay
+  	$SD = new Fieldframe_SettingsDisplay();
+	
+    $cell1 = $SD->label('mode_label')
+           . $SD->select('mode', $field_settings['mode'], $this->modes);
+    
+		$cell2 = $r = $SD->label('member_groups_label')
+		       . $this->_member_groups_select($field_settings['member_groups']);
+		
+		return array('cell1' => $cell1, 'cell2' => $cell2);
 	}
 	
     
@@ -84,7 +97,17 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	 */
 	function display_cell_settings($cell_settings)
 	{
-		return $this->_member_groups_select($cell_settings['member_groups']);
+    global $DSP, $LANG;
+  	$SD = new Fieldframe_SettingsDisplay();
+    
+		return '<label class="itemWrapper">'
+		   . $LANG->line('mode_label')
+		   . $SD->select('mode', $cell_settings['mode'], $this->modes)
+		   . '</label>'
+		   . '<label class="itemWrapper">'
+		   . $LANG->line('member_groups_label')
+		   . $this->_member_groups_select($cell_settings['member_groups'])
+		   . '</label>';
 	}
 	
 	
