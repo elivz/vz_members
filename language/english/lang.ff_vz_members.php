@@ -4,7 +4,7 @@ $L = array(
 
 'member_groups_label' => 'Show members from these groups:',
 
-'no_member_groups' => 'There are no member groups',
+'no_member_groups' => 'There are no member groups selected',
 
 ''=>''
 );
