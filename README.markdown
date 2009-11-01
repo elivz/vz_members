@@ -17,7 +17,7 @@ Template Tags
 
     {members_field}
 
-Will output a pipe-delimited list of member ids. You can also use the separator parameter to separate them with something other than a pipe. For instance `{members_field separator=', '}` would output something like: "1, 4, 5, 8".
+Will output a pipe-delimited list of member ids. You can also use the separator parameter to separate them with something other than a pipe. For instance `{members_field separator=', '}` would output something like: `1, 4, 5, 8`.
 
 ### Tag Pair ###
 
