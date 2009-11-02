@@ -13,11 +13,15 @@ You must have a recent version of FieldFrame installed to use VZ Members.
 Template Tags
 -------------
 
-### Single Tag ###
+### Single Tags ###
 
     {members_field}
 
-Will output a pipe-delimited list of member ids. You can also use the separator parameter to separate them with something other than a pipe. For instance `{members_field separator=', '}` would output something like: `1, 4, 5, 8`.
+Will output a pipe-delimited list of member ids. You can also use the `separator` parameter to separate them with something other than a pipe. For instance `{members_field separator=', '}` would output something like: `1, 4, 5, 8`.
+
+    {members_field:names}
+
+Will output a list of member screen names with a comma and space between each. You can also use the `separator` parameter to separate them with anything else. For instance `{members_field:names separator=' and '}` would output something like: `Bob Smith and Jane Doe and Jimmy Jones`.
 
 ### Tag Pair ###
 

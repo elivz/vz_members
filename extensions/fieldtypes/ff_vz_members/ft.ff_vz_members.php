@@ -343,7 +343,27 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 			return $r;
 		}
 	}
-	
+
+
+	/**
+	 * Names
+	 */
+	function names($params, $tagdata, $field_data, $field_settings)
+	{
+		// Get the member info
+		$members = $this->_get_member_names($field_data, $params['orderby'], $params['sort']);
+		
+		// Put the names in an array
+    foreach ($members as $member)
+    {
+      $member_names[] = $member['screen_name'];
+    }
+    
+    // Output the list
+    $separator = ($params['separator']) ? $params['separator'] : ', ';
+   	return implode($separator, $member_names);
+  }
+  
 }
 
 
