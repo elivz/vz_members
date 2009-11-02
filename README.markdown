@@ -1,7 +1,7 @@
 VZ Members
 ==========
 
-A fieldtype for the [FieldFrame](http://brandon-kelly.com/fieldframe) extension
+A fieldtype for the [FieldFrame](http://brandon-kelly.com/fieldframe) extension.
 
 VZ Members displays either a dropdown list or a group of checkboxes containing the members in one or more member groups. The allowed member groups can be set on a per-field basis, as can whether the user can select only one or any number of members. When adding a new entry, the user can select a member or members to associate the entry with.
 

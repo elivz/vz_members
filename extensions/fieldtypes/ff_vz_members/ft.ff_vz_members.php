@@ -29,7 +29,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	);
 	
 	var $requires = array(
-		'ff'        => '1.3.0',
+		'ff'        => '1.3.4',
 		'cp_jquery' => '1.1.1',
 	);
     
