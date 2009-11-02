@@ -22,7 +22,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	 */
 	var $info = array(
 		'name'             => 'VZ Members',
-		'version'          => '0.9',
+		'version'          => '0.91',
 		'desc'             => 'Select members from one or more member groups',
 		'docs_url'         => 'http://elivz.com/blog/single/vz_members/',
 		'versions_xml_url' => 'http://elivz.com/files/version.xml'
@@ -114,7 +114,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	/**
 	 * Create the user checkboxes
 	 */
-  function _create_user_checkboxes($field_name, $selected_members, $member_groups)
+  function _create_user_list($field_name, $selected_members, $member_groups, $mode)
   {
     global $DB, $DSP, $LANG;
     
@@ -123,7 +123,9 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
     {
 			return $DSP->qdiv('highlight_alt', $LANG->line('no_member_groups'));
     }
-    else
+    
+    // Flatten the list of members to csv
+    if (is_array($member_groups))
     {
       $member_groups = implode(',', $member_groups);
     }
@@ -147,38 +149,76 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 					WHERE 
 						exp_member_groups.group_id IN ($member_groups)
 					ORDER BY 
-						exp_member_groups.group_id ASC, exp_members.screen_name ASC ");
+						exp_member_groups.group_id ASC, exp_members.screen_name ASC
+				");
     
     $r = '';
     $current_group = -1;
     
-    foreach($query->result AS $member)
-		{
-			// If we are moving on to a new group
-			if($current_group != $member['group_id'])
-			{
-				// Set the current group
-				$current_group = $member['group_id'];
-
-				// Output the group header
-        $r .= '<div style="clear:left"></div>';
-				$r .= $SD->label('<strong>'.$member['group_title'].':</strong>');
-			}
+    if ($mode == 'single')
+    {
+      // Get the first selected member if there are more than one
+      if (is_array($selected_members)) $selected_members = array_shift($selected_members);
       
-      // Output the checkbox
-			$checked = (is_array($selected_members) && in_array($member['member_id'], $selected_members)) ? 1 : 0;
-			$r .= '<label style="display:block; float:left; margin:3px 15px 7px 0; white-space:nowrap;">'
-			    . $DSP->input_checkbox($field_name.'[]', $member['member_id'], $checked)
-			    . NBS.$member['screen_name']
-			    . '</label> ';
-		}
-		
-		
-		$r .= $DSP->input_hidden($field_name.'[]', 'temp');
-    
-    // Clear the floats
-    $r .= '<div style="clear:left"></div>';
-    
+      $r = $DSP->input_select_header($field_name, 0, 4);
+      foreach($query->result AS $member)
+  		{
+  			// If we are moving on to a new group
+  			if($current_group != $member['group_id'])
+  			{
+  				// Output the group header
+  				if ($current_group) $r .= '</optgroup>' . NL;
+					$r .= '<optgroup label="'.$member['group_title'].'">' . NL;
+					
+  				// Set the current group
+  				$current_group = $member['group_id'];
+  			}
+        
+        // Output the checkbox
+  			$selected = ($member['member_id'] == $selected_members) ? 1 : 0;
+  			$r .= $DSP->input_select_option($member['member_id'], $member['screen_name'], $selected) . NL;
+  		}
+  		$r .= $DSP->input_select_footer();
+    }
+    else
+    {
+      foreach($query->result AS $member)
+  		{
+  			// If we are moving on to a new group
+  			if($current_group != $member['group_id'])
+  			{
+  				// Set the current group
+  				$current_group = $member['group_id'];
+  
+  				// Output the group header
+          $r .= '<div style="clear:left"></div>';
+  				$r .= $SD->label('<strong>'.$member['group_title'].':</strong>');
+  			}
+        
+        // Is it selected?
+  			if (is_array($selected_members))
+  			{
+  		    $checked = (in_array($member['member_id'], $selected_members)) ? 1 : 0;
+  		  }
+  		  else
+  		  {
+  		    $checked = ($member['member_id'] == $selected_members) ? 1 : 0;
+  		  }
+  		  
+        // Output the checkbox
+  			$r .= '<label style="display:block; float:left; margin:3px 15px 7px 0; white-space:nowrap;">'
+  			    . $DSP->input_checkbox($field_name.'[]', $member['member_id'], $checked)
+  			    . NBS.$member['screen_name']
+  			    . '</label> ';
+  		}
+  		
+  		// Fool the form into working
+  		$r .= $DSP->input_hidden($field_name.'[]', 'temp');
+      
+      // Clear the floats
+      $r .= '<div style="clear:left"></div>';
+    }
+        
     return $r;
   }
   
@@ -188,7 +228,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	 */
 	function display_field($field_name, $field_data, $field_settings)
 	{
-    return $this->_create_user_checkboxes($field_name, $field_data, $field_settings['member_groups']);
+    return $this->_create_user_list($field_name, $field_data, $field_settings['member_groups'], $field_settings['mode']);
 	}
 	
     
@@ -197,7 +237,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	 */
 	function display_cell($cell_name, $cell_data, $cell_settings)
 	{
-    return $this->_create_user_checkboxes($cell_name, $cell_data, $cell_settings['member_groups']);
+    return $this->_create_user_list($cell_name, $cell_data, $cell_settings['member_groups'], $cell_settings['mode']);
 	}
 
 
@@ -229,7 +269,8 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
     global $DB;
     
     // Prepare parameters for SQL query
-    $member_list = ($members) ? implode(',', $members) : -1;
+    $member_list = (is_array($members)) ? implode(',', $members) : $members;
+    if (!$member_list) $member_list = -1;
     $sort = (strtolower($sort) == 'desc') ? 'DESC' : 'ASC';
     $orderby = ($orderby == 'username' || $orderby == 'screen_name' || $orderby == 'group_id') ? $orderby : 'member_id';
     
@@ -239,7 +280,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 					FROM exp_members 
 					WHERE member_id IN ($member_list)
 					ORDER BY $orderby $sort
-					");
+				");
 		
 		return $query->result;
   }
@@ -251,8 +292,17 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	{
     if (!$tagdata) // Single tag
     {
-      $separator = ($params['separator']) ? $params['separator'] : '|';
-		  return implode($separator, $field_data);
+      if (is_array($field_data))
+      {
+        // Multiple members are selected
+        $separator = ($params['separator']) ? $params['separator'] : '|';
+	   	  return implode($separator, $field_data);
+      }
+      else
+      {
+        // Only one member selected
+        return $field_data;
+      }
 		}
 		else // Tag pair
 		{
