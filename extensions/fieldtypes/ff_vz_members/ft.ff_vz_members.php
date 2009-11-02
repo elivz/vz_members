@@ -22,7 +22,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	 */
 	var $info = array(
 		'name'             => 'VZ Members',
-		'version'          => '0.92',
+		'version'          => '0.95',
 		'desc'             => 'Select members from one or more member groups',
 		'docs_url'         => 'http://elivz.com/blog/single/vz_members/',
 		'versions_xml_url' => 'http://elivz.com/files/version.xml'
@@ -59,7 +59,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 		global $DB, $DSP;
 		
     // Get the available member groups
-		$member_groups = $DB->query("SELECT group_title, group_id FROM exp_member_groups");
+		$member_groups = $DB->query("SELECT group_title, group_id FROM exp_member_groups WHERE site_id = 1");
     
     // Construct the select list of member groups
 		$r = $DSP->input_select_header('member_groups[]', 'y', ($member_groups->num_rows < 10 ? $member_groups->num_rows : 10));
@@ -147,7 +147,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 					ON
 						exp_members.group_id = exp_member_groups.group_id
 					WHERE 
-						exp_member_groups.group_id IN ($member_groups)
+						exp_member_groups.group_id IN ($member_groups) AND exp_member_groups.site_id = 1
 					ORDER BY 
 						exp_member_groups.group_id ASC, exp_members.screen_name ASC
 				");
