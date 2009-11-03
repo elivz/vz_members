@@ -112,7 +112,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	
 	
 	/**
-	 * Create the user checkboxes
+	 * Create the user checkboxes or select list
 	 */
   function _create_user_list($field_name, $selected_members, $member_groups, $mode)
   {
@@ -161,6 +161,8 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
       if (is_array($selected_members)) $selected_members = array_shift($selected_members);
       
       $r = $DSP->input_select_header($field_name, 0, 4);
+			$selected = (!$selected_members) ? 1 : 0;
+			$r .= $DSP->input_select_option('', '&mdash;', $selected) . NL;
       foreach($query->result AS $member)
   		{
   			// If we are moving on to a new group
