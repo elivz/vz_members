@@ -22,7 +22,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	 */
 	var $info = array(
 		'name'             => 'VZ Members',
-		'version'          => '0.95',
+		'version'          => '0.96',
 		'desc'             => 'Select members from one or more member groups',
 		'docs_url'         => 'http://elivz.com/blog/single/vz_members/',
 		'versions_xml_url' => 'http://elivz.com/files/version.xml'
@@ -364,6 +364,49 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
     // Output the list
     $separator = ($params['separator']) ? $params['separator'] : ', ';
    	return implode($separator, $member_names);
+  }
+  
+  
+  /**
+   * is_allowed
+   */
+  function is_allowed($params, $tagdata, $field_data, $field_settings)
+  {
+    global $DB;
+    
+    $allowed = is_array($field_data) ? $field_data : array($field_data);
+    $candidates = explode('|', $params['users']);
+    
+    if ( isset($params['groups']) )
+    {
+      // Get all the users in those groups
+      $supers = $DB->query("
+					SELECT member_id, group_id
+					FROM exp_members 
+					WHERE group_id IN (".$params['groups'].")
+				");
+			
+  		// Separate out the member_ids
+      foreach ($supers->result as $super)
+      {
+        $candidates[] = $super['member_id'];
+      }
+    }
+      
+    // Remove duplicates
+    $candidates = array_unique($candidates);
+    
+    // Are there any matches between the two?
+    $isAllowed = count(array_intersect($candidates, $allowed));
+    
+    if (!$tagdata) // Single tag
+    {
+      return $isAllowed ? TRUE : FALSE;
+    }
+    else // Tag pair
+    {
+      return $isAllowed ? $tagdata : '';
+    }
   }
   
 }
