@@ -375,7 +375,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
     global $DB;
     
     $allowed = is_array($field_data) ? $field_data : array($field_data);
-    $candidates = explode('|', $params['users']);
+    $candidates = explode('|', $params['members']);
     
     if ( isset($params['groups']) )
     {
