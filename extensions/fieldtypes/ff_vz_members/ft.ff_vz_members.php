@@ -8,7 +8,7 @@ if ( ! defined('EXT')) exit('Invalid file request');
  *
  * @package   FieldFrame
  * @author    Eli Van Zoeren <eli@elivz.com>
- * @copyright Copyright (c) 2009 Eli Van Zoeren
+ * @copyright Copyright (c) 2009-2010 Eli Van Zoeren
  * @license   http://creativecommons.org/licenses/by-sa/3.0/ Attribution-Share Alike 3.0 Unported
  *            Some small bits of code here and there were borrowed from the
  *            Checkbox Group fieldtype included with FieldFrame.
@@ -22,7 +22,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 	 */
 	var $info = array(
 		'name'             => 'VZ Members',
-		'version'          => '0.96',
+		'version'          => '0.97',
 		'desc'             => 'Select members from one or more member groups',
 		'docs_url'         => 'http://elivz.com/blog/single/vz_members/',
 		'versions_xml_url' => 'http://elivz.com/files/versions.xml'
@@ -153,14 +153,14 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 				");
     
     $r = '';
-    $current_group = -1;
+    $current_group = 0;
     
     if ($mode == 'single')
     {
       // Get the first selected member if there are more than one
       if (is_array($selected_members)) $selected_members = array_shift($selected_members);
       
-      $r = $DSP->input_select_header($field_name, 0, 4);
+      $r = $DSP->input_select_header($field_name);
 			$selected = (!$selected_members) ? 1 : 0;
 			$r .= $DSP->input_select_option('', '&mdash;', $selected) . NL;
       foreach($query->result AS $member)
@@ -180,6 +180,7 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
   			$selected = ($member['member_id'] == $selected_members) ? 1 : 0;
   			$r .= $DSP->input_select_option($member['member_id'], $member['screen_name'], $selected) . NL;
   		}
+  		$r .= '</optgroup>';
   		$r .= $DSP->input_select_footer();
     }
     else
