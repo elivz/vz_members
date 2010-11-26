@@ -13,5 +13,4 @@ $L = array(
 ''=>''
 );
 
-/* End of file lang.ff_vz_members.php */
-/* Location: ./system/language/english/lang.ff_vz_members.php */
+/* End of file lang.vz_members.php */

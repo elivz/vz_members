@@ -14,7 +14,7 @@ if ( ! defined('EXT')) exit('Invalid file request');
  *            Checkbox Group fieldtype included with FieldFrame.
  */
  
-class Ff_vz_members extends Fieldframe_Fieldtype {
+class Vz_members extends Fieldframe_Fieldtype {
 
     /**
      * Fieldtype Info
@@ -413,5 +413,4 @@ class Ff_vz_members extends Fieldframe_Fieldtype {
 }
 
 
-/* End of file ft.ff_vz_members.php */
-/* Location: ./system/fieldtypes/ff_vz_members/ft.ff_vz_members.php */
+/* End of file ft.vz_members.php */
