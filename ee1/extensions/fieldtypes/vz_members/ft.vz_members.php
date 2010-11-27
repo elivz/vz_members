@@ -20,7 +20,7 @@ class Vz_members extends Fieldframe_Fieldtype {
      */
     public $info = array(
         'name'             => 'VZ Members',
-        'version'          => '0.99',
+        'version'          => '1.0.0',
         'desc'             => 'Select members from one or more member groups',
         'docs_url'         => 'http://elivz.com/blog/single/vz_members/',
         'versions_xml_url' => 'http://elivz.com/files/versions.xml'
