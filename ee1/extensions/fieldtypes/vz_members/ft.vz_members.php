@@ -29,7 +29,7 @@ class Vz_members extends Fieldframe_Fieldtype {
     );
     
     var $requires = array(
-        'ff'        => '1.3.4',
+        'ff'        => '1.4',
         'cp_jquery' => '1.1.1',
     );
     
@@ -59,11 +59,15 @@ class Vz_members extends Fieldframe_Fieldtype {
         global $DB, $DSP;
         
         // Get the available member groups
-        $member_groups = $DB->query("SELECT group_title, group_id FROM exp_member_groups WHERE site_id = 1");
+        if (!isset( $SESS->cache['vz_members']['groups']['all'] ))
+        {
+            $SESS->cache['vz_members']['groups']['all'] = $DB->query("SELECT group_title, group_id FROM exp_member_groups WHERE site_id = 1")->result;
+        }
+        $member_groups = $SESS->cache['vz_members']['groups']['all'];
         
         // Construct the select list of member groups
         $r = $DSP->input_select_header('member_groups[]', 'y', ($member_groups->num_rows < 10 ? $member_groups->num_rows : 10));
-        foreach($member_groups->result as $member_group)
+        foreach($member_groups as $member_group)
         {
             $selected = in_array($member_group['group_id'], $selected_groups) ? 1 : 0;
             $r .= $DSP->input_select_option($member_group['group_id'], $member_group['group_title'], $selected);
@@ -102,10 +106,13 @@ class Vz_members extends Fieldframe_Fieldtype {
         
         return '<label class="itemWrapper">'
            . $LANG->line('mode_label')
+           . '<br/>'
            . $SD->select('mode', $cell_settings['mode'], $this->modes)
            . '</label>'
+           . '<br/>'
            . '<label class="itemWrapper">'
            . $LANG->line('member_groups_label')
+           . '<br/>'
            . $this->_member_groups_select($cell_settings['member_groups'])
            . '</label>';
 	}
@@ -124,7 +131,7 @@ class Vz_members extends Fieldframe_Fieldtype {
             return $DSP->qdiv('highlight_alt', $LANG->line('no_member_groups'));
         }
         
-        // Flatten the list of members to csv
+        // Flatten the list of member groups csv
         if (is_array($member_groups))
         {
             $member_groups = implode(',', $member_groups);
@@ -134,23 +141,28 @@ class Vz_members extends Fieldframe_Fieldtype {
         $SD = new Fieldframe_SettingsDisplay();
 	    
         // Get the members in the selected member groups
-        $query = $DB->query("
-            SELECT
-                exp_members.member_id AS member_id,
-                exp_members.screen_name AS screen_name,
-                exp_member_groups.group_title AS group_title, 
-                exp_member_groups.group_id AS group_id
-            FROM
-                exp_members
-            INNER JOIN
-                exp_member_groups
-            ON
-                exp_members.group_id = exp_member_groups.group_id
-            WHERE 
-                exp_member_groups.group_id IN ($member_groups) AND exp_member_groups.site_id = 1
-            ORDER BY 
-                exp_member_groups.group_id ASC, exp_members.screen_name ASC
-        ");
+        if (!isset( $SESS->cache['vz_members']['in_groups'][$member_groups] ))
+        {
+            $query = $DB->query("
+                SELECT
+                    exp_members.member_id AS member_id,
+                    exp_members.screen_name AS screen_name,
+                    exp_member_groups.group_title AS group_title, 
+                    exp_member_groups.group_id AS group_id
+                FROM
+                    exp_members
+                INNER JOIN
+                    exp_member_groups
+                ON
+                    exp_members.group_id = exp_member_groups.group_id
+                WHERE 
+                    exp_member_groups.group_id IN ($member_groups) AND exp_member_groups.site_id = 1
+                ORDER BY 
+                    exp_member_groups.group_id ASC, exp_members.screen_name ASC
+            ");
+            $SESS->cache['vz_members']['in_groups'][$member_groups] = $query->result;
+        }
+        $members = $SESS->cache['vz_members']['in_groups'][$member_groups];
     
         $r = '';
         $current_group = 0;
@@ -163,7 +175,7 @@ class Vz_members extends Fieldframe_Fieldtype {
             $r = $DSP->input_select_header($field_name);
             $selected = (!$selected_members) ? 1 : 0;
             $r .= $DSP->input_select_option('', '&mdash;', $selected) . NL;
-            foreach($query->result AS $member)
+            foreach($members AS $member)
             {
                 // If we are moving on to a new group
                 if($current_group != $member['group_id'])
@@ -185,7 +197,7 @@ class Vz_members extends Fieldframe_Fieldtype {
         }
         else
         {
-            foreach($query->result AS $member)
+            foreach ($members AS $member)
             {
             	// If we are moving on to a new group
             	if ($current_group != $member['group_id'])
@@ -269,7 +281,7 @@ class Vz_members extends Fieldframe_Fieldtype {
     */
     function _get_member_names($members, $orderby, $sort)
     {
-        global $DB;
+        global $DB, $SESS;
         
         // Prepare parameters for SQL query
         $member_list = (is_array($members)) ? implode(',', $members) : $members;
@@ -277,15 +289,21 @@ class Vz_members extends Fieldframe_Fieldtype {
         $sort = (strtolower($sort) == 'desc') ? 'DESC' : 'ASC';
         $orderby = ($orderby == 'username' || $orderby == 'screen_name' || $orderby == 'group_id') ? $orderby : 'member_id';
         
-        // Get the names of the members
-        $query = $DB->query("
-            SELECT member_id, group_id, username, screen_name
-            FROM exp_members 
-            WHERE member_id IN ($member_list)
-            ORDER BY $orderby $sort
-        ");
+        // Only hit the database once per pageload
+        if (!isset( $SESS->cache['vz_members']['members'][$member_list][$orderby][$sort] ))
+        {
+            // Get the names of the members
+            $query = $DB->query("
+                SELECT member_id, group_id, username, screen_name
+                FROM exp_members 
+                WHERE member_id IN ($member_list)
+                ORDER BY $orderby $sort
+            ");
+            $SESS->cache['vz_members']['members'][$member_list][$orderby][$sort] = $query->result;
+            echo 'boom!';
+        }
         
-        return $query->result;
+        return $SESS->cache['vz_members']['members'][$member_list][$orderby][$sort];
     }
 
     /**
@@ -381,11 +399,15 @@ class Vz_members extends Fieldframe_Fieldtype {
         if ( isset($params['groups']) )
         {
             // Get all the users in those groups
-            $supers = $DB->query("
-            	SELECT member_id, group_id
-            	FROM exp_members 
-            	WHERE group_id IN (".$params['groups'].")
-            ");
+            if (!isset( $SESS->cache['vz_members']['groups'][$params['groups']] ))
+            {
+                $SESS->cache['vz_members']['groups'][$params['groups']] = $DB->query("
+                	SELECT member_id, group_id
+                	FROM exp_members 
+                	WHERE group_id IN (".$params['groups'].")
+                ");
+            }
+            $supers = $SESS->cache['vz_members']['groups'][$params['groups']];
             
             // Separate out the member_ids
             foreach ($supers->result as $super)
