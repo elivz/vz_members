@@ -122,6 +122,15 @@ class Vz_members_ft extends EE_Fieldtype {
         $this->EE->table->add_row($settings_array[0]);
         $this->EE->table->add_row($settings_array[1]);
     }
+
+
+    function save_settings($data)
+    {
+    	return array(
+    		'mode'	=> $this->EE->input->post('mode'),
+    		'member_groups'		=> $this->EE->input->post('member_groups')
+    	);
+    }
 	
     
 	/**
@@ -179,13 +188,16 @@ class Vz_members_ft extends EE_Fieldtype {
         $r = '';
         $current_group = 0;
         
+        // We want the selected members as an array
+        if (!is_array($selected_members))
+        {
+            $selected_members = explode('|', $selected_members);
+        }
+        
         if ($mode == 'single')
         {
             // Get the first selected member if there are more than one
-            if (is_array($selected_members))
-            {
-                $selected_members = array_shift($selected_members);
-            }
+            $selected_members = array_shift($selected_members);
             
             // Construct the select box markup
             $r = '<select name="' . $field_name . '">';
@@ -227,14 +239,7 @@ class Vz_members_ft extends EE_Fieldtype {
             	}
             
                 // Is it selected?
-            	if (is_array($selected_members))
-            	{
-                    $checked = (in_array($member['member_id'], $selected_members)) ? 1 : 0;
-                }
-                else
-                {
-                    $checked = ($member['member_id'] == $selected_members) ? 1 : 0;
-                }
+            	$checked = (in_array($member['member_id'], $selected_members)) ? 1 : 0;
         	  
                 // Output the checkbox
                 $r .= '<label class="vz_member' . ($checked ? ' checked' : '') . '">'
@@ -250,8 +255,8 @@ class Vz_members_ft extends EE_Fieldtype {
             $this->EE->cp->add_to_head('<style type="text/css">
                 div.vz_members_group { float:left; height:14px; line-height:14px !important; margin:3px 10px 7px 0; font-size:12px; }
                 label.vz_member { float:left; height:14px; line-height:14px !important; margin:3px 10px 7px 0; padding: 2px 10px; border:1px solid #B6C0C2; -moz-border-radius:9px; border-radius:9px; text-shadow:0 1px #fff; background:#ebf1f7; -webkit-box-shadow:inset 0 2px 3px rgba(255,255,255,0.8); -moz-box-shadow:inset 0 2px 3px rgba(255,255,255,0.8); box-shadow:inset 0 2px 3px rgba(255,255,255,0.8); cursor:pointer; white-space:nowrap; }
-                label.vz_member:hover, label.vz_member:focus { background:#f7fafc; }
-                label.vz_member.checked { background:#c6d0db; background: -webkit-gradient(linear, 0 0, 0 100%, from(rgba(0,0,0,0.15)), to(rgba(0,0,0,0.1))); background: -moz-linear-gradient(top, rgba(0,0,0,0.15), rgba(0,0,0,0.1)); border-color:#a7b4c2; -webkit-box-shadow:inset 0 1px rgba(0,0,0,0.1); -moz-box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); }
+                label.vz_member:hover, label.vz_member:focus { background:#f7fafc; -webkit-box-shadow: 0 0 5px #abd9f4; -moz-box-shadow: 0 0 5px #abd9f4; box-shadow: 0 0 5px #abd9f4; }
+                label.vz_member.checked { background:#b6babf; color:#fff; text-shadow:0 -1px rgba(0,0,0,0.2); background: -webkit-gradient(linear, 0 0, 0 100%, from(#aaaeb3), to(#b6babf)); background: -moz-linear-gradient(top, #aaaeb3, #b6babf); border-color:#a7b4c2; -webkit-box-shadow:inset 0 1px rgba(0,0,0,0.1); -moz-box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); }
                 label.vz_member input { display:none }
             </style>');
             $this->EE->cp->add_to_foot('<script type="text/javascript">
@@ -273,28 +278,32 @@ class Vz_members_ft extends EE_Fieldtype {
     /**
      * Display Field
      */
-    function display_field($field_name, $field_data, $field_settings)
+    function display_field($field_data)
     {
-        return $this->_create_user_list($field_name, $field_data, $field_settings['member_groups'], $field_settings['mode']);
+        return $this->_create_user_list($this->field_name, $field_data, $this->settings['member_groups'], $this->settings['mode']);
     }
 	
     
     /**
      * Display Cell
      */
-    function display_cell($cell_name, $cell_data, $cell_settings)
+    function display_cell($cell_data)
     {
-        return $this->_create_user_list($cell_name, $cell_data, $cell_settings['member_groups'], $cell_settings['mode']);
+        return $this->_create_user_list($this->cell_name, $cell_data, $this->settings['member_groups'], $this->settings['mode']);
     }
 
     
     /**
      * Save Field
      */
-    function save_field($field_data, $field_settings)
+    function save($field_data)
     {
     	// Remove the temporary element
-    	@array_pop($field_data);
+    	if (is_array($field_data))
+    	{
+    	   @array_pop($field_data);
+    	   $field_data = implode('|', $field_data);
+    	}
     	return $field_data;
     }
     
@@ -302,9 +311,9 @@ class Vz_members_ft extends EE_Fieldtype {
     /**
      * Save Cell
      */
-    function save_cell($cell_data, $cell_settings)
+    function save_cell($cell_data)
     {
-        return $this->save_field($cell_data, $cell_settings);
+        return $this->save($cell_data);
     }
 
 
