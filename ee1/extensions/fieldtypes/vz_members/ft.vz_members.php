@@ -18,7 +18,7 @@ class Vz_members extends Fieldframe_Fieldtype {
      * Fieldtype Info
      * @var array
      */
-    var $info = array(
+    public $info = array(
         'name'             => 'VZ Members',
         'version'          => '0.99',
         'desc'             => 'Select members from one or more member groups',
@@ -26,24 +26,24 @@ class Vz_members extends Fieldframe_Fieldtype {
         'versions_xml_url' => 'http://elivz.com/files/versions.xml'
     );
     
-    var $requires = array(
+    public $requires = array(
         'ff'        => '1.4.0',
         'cp_jquery' => '1.1.1',
     );
     
-    var $default_site_settings = array();
+    public $default_site_settings = array();
     
-    var $default_field_settings = array(
+    public $default_field_settings = array(
         'member_groups' => array(),
         'mode'          => 'multiple'
     );
     
-    var $default_cell_settings = array(
+    public $default_cell_settings = array(
         'member_groups' => array(),
         'mode'          => 'single'
     );
     
-    var $modes = array(
+    public $modes = array(
         'single'    => 'mode_single',
         'multiple'  => 'mode_multiple'
     );
@@ -52,7 +52,7 @@ class Vz_members extends Fieldframe_Fieldtype {
     /**
     * Member Groups Select
     */
-    function _get_member_groups($selected_groups)
+    private function _get_member_groups($selected_groups)
     {
         global $DB, $SESS;
         $SD = new Fieldframe_SettingsDisplay();
@@ -61,7 +61,12 @@ class Vz_members extends Fieldframe_Fieldtype {
         if (!isset( $SESS->cache['vz_members']['groups']['all'] ))
         {
             $member_groups = array();
-            $result = $DB->query("SELECT group_title, group_id FROM exp_member_groups WHERE site_id = 1")->result;
+            $result = $DB->query("
+                SELECT group_title, group_id
+                FROM exp_member_groups 
+                WHERE site_id = 1
+                ")->result;
+            
             // We need it in key-value form for the select helper functions
             foreach ($result as $item)
             {
@@ -121,7 +126,7 @@ class Vz_members extends Fieldframe_Fieldtype {
 	/**
 	 * Create the user checkboxes or select list
 	 */
-    function _create_user_list($field_name, $selected_members, $member_groups, $mode)
+    private function _create_user_list($field_name, $selected_members, $member_groups, $mode)
     {
         global $DB, $DSP, $LANG, $SESS;
         $SD = new Fieldframe_SettingsDisplay();
@@ -295,7 +300,7 @@ class Vz_members extends Fieldframe_Fieldtype {
     /**
     * Get names of a list of members
     */
-    function _get_member_names($members, $orderby, $sort)
+    private function _get_member_names($members, $orderby, $sort)
     {
         global $DB, $SESS;
         
