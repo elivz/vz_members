@@ -10,8 +10,6 @@ if ( ! defined('EXT')) exit('Invalid file request');
  * @author    Eli Van Zoeren <eli@elivz.com>
  * @copyright Copyright (c) 2009-2010 Eli Van Zoeren
  * @license   http://creativecommons.org/licenses/by-sa/3.0/ Attribution-Share Alike 3.0 Unported
- *            Some small bits of code here and there were borrowed from the
- *            Checkbox Group fieldtype included with FieldFrame.
  */
  
 class Vz_members extends Fieldframe_Fieldtype {
@@ -29,7 +27,7 @@ class Vz_members extends Fieldframe_Fieldtype {
     );
     
     var $requires = array(
-        'ff'        => '1.4',
+        'ff'        => '1.4.0',
         'cp_jquery' => '1.1.1',
     );
     
@@ -142,7 +140,7 @@ class Vz_members extends Fieldframe_Fieldtype {
         }
 	    
         // Get the members in the selected member groups
-        if (!isset( $SESS->cache['vz_members']['in_groups'][$member_groups] ))
+        if ( !isset($SESS->cache['vz_members']['in_groups'][$member_groups]) )
         {
             $query = $DB->query("
                 SELECT
@@ -225,14 +223,28 @@ class Vz_members extends Fieldframe_Fieldtype {
                 }
         	  
                 // Output the checkbox
-                $r .= '<label style="display:block; float:left; margin:3px 15px 7px 0; white-space:nowrap;">'
+                $r .= '<label class="vz_member' . ($checked ? ' checked' : '') . '">'
                     . $DSP->input_checkbox($field_name.'[]', $member['member_id'], $checked)
-                    . NBS . $member['screen_name']
+                    . $member['screen_name']
                     . '</label>';
         	}
         	
             // Fool the form into working
             $r .= $DSP->input_hidden($field_name.'[]', 'temp');
+            
+            // Make it pretty
+            $this->insert_css('
+                label.vz_member { float:left; height:14px; line-height:14px !important; margin:3px 10px 7px 0; padding: 2px 10px; border:1px solid #B6C0C2; -moz-border-radius:9px; border-radius:9px; text-shadow:0 1px #fff; background:#ebf1f7; -webkit-box-shadow:inset 0 2px 3px rgba(255,255,255,0.8); -moz-box-shadow:inset 0 2px 3px rgba(255,255,255,0.8); box-shadow:inset 0 2px 3px rgba(255,255,255,0.8); cursor:pointer; white-space:nowrap; }
+                label.vz_member:hover, label.vz_member:focus { background:#f7fafc; }
+                label.vz_member.checked { background:#c6d0db; border-color:#a7b4c2; text-shadow: 0 0 0 #000; -webkit-box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); -moz-box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); }
+                label.vz_member input { display:none }
+            ');
+            $this->insert_js('jQuery(document).ready(function($) {
+                $(".vz_member input")
+                    .live("click", function() {
+                        $(this).parent().toggleClass("checked");
+                    });
+            });');
             
             // Clear the floats
             $r .= '<div style="clear:left"></div>';
@@ -294,7 +306,7 @@ class Vz_members extends Fieldframe_Fieldtype {
         $orderby = ($orderby == 'username' || $orderby == 'screen_name' || $orderby == 'group_id') ? $orderby : 'member_id';
         
         // Only hit the database once per pageload
-        if (!isset( $SESS->cache['vz_members']['members'][$member_list][$orderby][$sort] ))
+        if ( !isset($SESS->cache['vz_members']['members'][$member_list][$orderby][$sort]) )
         {
             // Get the names of the members
             $query = $DB->query("
