@@ -52,7 +52,7 @@ class Vz_members extends Fieldframe_Fieldtype {
     /**
     * Member Groups Select
     */
-    private function _get_member_groups($selected_groups)
+    private function _get_member_groups()
     {
         global $DB, $SESS;
         $SD = new Fieldframe_SettingsDisplay();
@@ -78,26 +78,35 @@ class Vz_members extends Fieldframe_Fieldtype {
         return $SESS->cache['vz_members']['groups']['all'];
     }
   
+    
+    /**
+     * Create the settings ui
+     */
+    private function _get_settings($settings, $label_suf)
+    {
+        // Initialize a new instance of SettingsDisplay
+        $SD = new Fieldframe_SettingsDisplay();
+        
+        $row1 = array(
+            $SD->label('mode_label' . $label_suf),
+            $SD->select('mode', $settings['mode'], $this->modes)
+        );
+    
+		$row2 = array(
+            $SD->label('member_groups_label' . $label_suf),
+            $SD->multiselect('member_groups[]', $settings['member_groups'], $this->_get_member_groups())
+        );
+        
+        return array( $row1, $row2 );
+    }
+  
   
 	/**
 	 * Display Field Settings
 	 */
 	function display_field_settings($field_settings)
 	{
-        // Initialize a new instance of SettingsDisplay
-        $SD = new Fieldframe_SettingsDisplay();
-        
-        $row1 = array(
-            $SD->label('mode_label'),
-            $SD->select('mode', $field_settings['mode'], $this->modes)
-        );
-    
-		$row2 = array(
-            $SD->label('member_groups_label'),
-            $SD->multiselect('member_groups[]', $field_settings['member_groups'], $this->_get_member_groups())
-        );
-		
-		return array('rows' => array( $row1, $row2 ));
+		return array( 'rows' => $this->_get_settings($field_settings) );
 	}
 	
     
@@ -106,20 +115,7 @@ class Vz_members extends Fieldframe_Fieldtype {
 	 */
 	function display_cell_settings($cell_settings)
 	{
-        global $LANG;
-        $SD = new Fieldframe_SettingsDisplay();
-        
-        $row1 = array(
-            $LANG->line('mode_label_cell'),
-            $SD->select('mode', $cell_settings['mode'], $this->modes)
-        );
-    
-		$row2 = array(
-            $LANG->line('member_groups_label_cell'),
-            $SD->multiselect('member_groups[]', $cell_settings['member_groups'], $this->_get_member_groups())
-        );
-		
-		return array( $row1, $row2 );
+		return $this->_get_settings($field_settings, '_cell');
 	}
 	
 	
@@ -195,7 +191,7 @@ class Vz_members extends Fieldframe_Fieldtype {
                     $current_group = $member['group_id'];
                 }
             
-                // Output the checkbox
+                // Output the option
                 $selected = ($member['member_id'] == $selected_members) ? 1 : 0;
                 $r .= $DSP->input_select_option($member['member_id'], $member['screen_name'], $selected) . NL;
             }
