@@ -166,6 +166,12 @@ class Vz_members extends Fieldframe_Fieldtype {
         $r = '';
         $current_group = 0;
         
+        // We want the selected members as an array
+        if (!is_array($selected_members))
+        {
+            $selected_members = explode('|', $selected_members);
+        }
+        
         if ($mode == 'single')
         {
             // Get the first selected member if there are more than one
@@ -276,10 +282,14 @@ class Vz_members extends Fieldframe_Fieldtype {
     /**
      * Save Field
      */
-    function save_field($field_data, $field_settings)
+    function save_field($field_data)
     {
     	// Remove the temporary element
-    	@array_pop($field_data);
+    	if (is_array($field_data))
+    	{
+    	   @array_pop($field_data);
+    	   $field_data = implode('|', $field_data);
+    	}
     	return $field_data;
     }
     
@@ -287,9 +297,9 @@ class Vz_members extends Fieldframe_Fieldtype {
     /**
      * Save Cell
      */
-    function save_cell($cell_data, $cell_settings)
+    function save_cell($cell_data)
     {
-        return $this->save_field($cell_data, $cell_settings);
+        return $this->save_field($cell_data);
     }
 
 
@@ -301,7 +311,7 @@ class Vz_members extends Fieldframe_Fieldtype {
         global $DB, $SESS;
         
         // Prepare parameters for SQL query
-        $member_list = (is_array($members)) ? implode(',', $members) : $members;
+        $member_list = str_replace('|', ',', $members);
         if (!$member_list) $member_list = -1;
         $sort = (strtolower($sort) == 'desc') ? 'DESC' : 'ASC';
         $orderby = ($orderby == 'username' || $orderby == 'screen_name' || $orderby == 'group_id') ? $orderby : 'member_id';
@@ -351,8 +361,9 @@ class Vz_members extends Fieldframe_Fieldtype {
             $this->prep_iterators($tagdata);
             
             $r = '';
+            $total_results = count($members);
             
-            foreach($members as $member)
+            foreach ($members as $member)
             {
                 // Make a copy of the tagdata
                 $member_tag_data = $tagdata;
@@ -362,7 +373,8 @@ class Vz_members extends Fieldframe_Fieldtype {
                 $member_tag_data = $TMPL->swap_var_single('group', $member['group_id'], $member_tag_data);
                 $member_tag_data = $TMPL->swap_var_single('username', $member['username'], $member_tag_data);
                 $member_tag_data = $TMPL->swap_var_single('screen_name', $member['screen_name'], $member_tag_data);
-                $member_tag_data = $TMPL->swap_var_single('total', count($members), $member_tag_data);
+                $member_tag_data = $TMPL->swap_var_single('total', $total_results, $member_tag_data); // For backwards compatability
+                $member_tag_data = $TMPL->swap_var_single('total_results', $total_results, $member_tag_data);
                 
                 // Parse {switch} and {count} tags
                 $this->parse_iterators($member_tag_data);
@@ -409,7 +421,7 @@ class Vz_members extends Fieldframe_Fieldtype {
     {
         global $DB, $SESS;
         
-        $allowed = is_array($field_data) ? $field_data : array($field_data);
+        $allowed = explode('|', $field_data);
         $candidates = explode('|', $params['members']);
         
         if ( isset($params['groups']) )

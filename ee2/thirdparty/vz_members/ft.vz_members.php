@@ -44,6 +44,8 @@ class Vz_members_ft extends EE_Fieldtype {
             'mode'          => 'multiple'
         );
     }
+    
+    var $has_array_data = TRUE;
 	    
     public $default_cell_settings = array(
         'member_groups' => array(),
@@ -339,7 +341,7 @@ class Vz_members_ft extends EE_Fieldtype {
     function _get_member_names($members, $orderby, $sort)
     {
         // Prepare parameters for SQL query
-        $member_list = (is_array($members)) ? implode(',', $members) : $members;
+        $member_list = str_replace('|', ',', $members);
         if (!$member_list) $member_list = -1;
         $sort = (strtolower($sort) == 'desc') ? 'DESC' : 'ASC';
         $orderby = ($orderby == 'username' || $orderby == 'screen_name' || $orderby == 'group_id') ? $orderby : 'member_id';
@@ -362,59 +364,38 @@ class Vz_members_ft extends EE_Fieldtype {
     /**
      * Display Tag
      */
-    function display_tag($params, $tagdata, $field_data, $field_settings)
+    function replace_tag($field_data, $params=array(), $tagdata=FALSE)
     {
         if (!$tagdata) // Single tag
         {
-            if (is_array($field_data))
-            {
-                // Multiple members are selected
-                $separator = isset($params['separator']) ? $params['separator'] : '|';
-                return implode($separator, $field_data);
-            }
-            else
-            {
-                // Only one member selected
-                return $field_data;
-            }
+            return $field_data;
     	}
     	else // Tag pair
     	{
-            global $TMPL;
-            
             // Get the member info
             $members = $this->_get_member_names($field_data, $params['orderby'], $params['sort']);
             
-            // Prepare for {switch} and {count} tags
-            $this->prep_iterators($tagdata);
-            
-            $r = '';
-            
-            foreach($members as $member)
+            $variables = array();
+            foreach ($members as $member)
             {
-                // Make a copy of the tagdata
-                $member_tag_data = $tagdata;
-                
-                // Replace the variables
-                $member_tag_data = $TMPL->swap_var_single('id', $member['member_id'], $member_tag_data);
-                $member_tag_data = $TMPL->swap_var_single('group', $member['group_id'], $member_tag_data);
-                $member_tag_data = $TMPL->swap_var_single('username', $member['username'], $member_tag_data);
-                $member_tag_data = $TMPL->swap_var_single('screen_name', $member['screen_name'], $member_tag_data);
-                $member_tag_data = $TMPL->swap_var_single('total', count($members), $member_tag_data);
-                
-                // Parse {switch} and {count} tags
-                $this->parse_iterators($member_tag_data);
-                
-                $r .= $member_tag_data;
+                // Prepare the variables for replacement
+                $variables[] = array(
+                    'id' => $member['member_id'],
+                    'group' => $member['group_id'],
+                    'username' => $member['username'],
+                    'screen_name' => $member['screen_name']
+                );
             }
+            
+            $output = $this->EE->TMPL->parse_variables($tagdata, $variables);
             
             // Backsapce parameter
             if (isset($params['backspace']))
             {
-                $r = substr($r, 0, -$params['backspace']);
+                $output = substr($output, 0, -$params['backspace']);
             }
             
-            return $r;
+            return $output;
     	}
     }
 
@@ -422,7 +403,7 @@ class Vz_members_ft extends EE_Fieldtype {
     /**
      * Names
      */
-    function names($params, $tagdata, $field_data, $field_settings)
+    function replace_names($field_data, $params=array(), $tagdata=FALSE)
     {
         // Get the member info
         $members = $this->_get_member_names($field_data, $params['orderby'], $params['sort']);
@@ -443,11 +424,9 @@ class Vz_members_ft extends EE_Fieldtype {
     * Checks the intersection between the selected members and a
     * member or list of members 
     */
-    function is_allowed($params, $tagdata, $field_data, $field_settings)
+    function replace_is_allowed($field_data, $params=array(), $tagdata=FALSE)
     {
-        global $DB, $SESS;
-        
-        $allowed = is_array($field_data) ? $field_data : array($field_data);
+        $allowed = explode('|', $field_data);
         $candidates = explode('|', $params['members']);
         
         if ( isset($params['groups']) )
@@ -475,7 +454,7 @@ class Vz_members_ft extends EE_Fieldtype {
         
         if (!$tagdata) // Single tag
         {
-            return $isAllowed ? TRUE : FALSE;
+            return $isAllowed ? 'TRUE' : 'FALSE';
         }
         else // Tag pair
         {
