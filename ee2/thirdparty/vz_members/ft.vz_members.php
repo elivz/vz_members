@@ -454,7 +454,7 @@ class Vz_members_ft extends EE_Fieldtype {
         
         if (!$tagdata) // Single tag
         {
-            return $isAllowed ? 'TRUE' : 'FALSE';
+            return $isAllowed ? TRUE : FALSE;
         }
         else // Tag pair
         {
