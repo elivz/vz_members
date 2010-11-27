@@ -56,13 +56,13 @@ class Vz_members extends Fieldframe_Fieldtype {
     {
         global $DB, $SESS;
         $SD = new Fieldframe_SettingsDisplay();
-        //var_dump($selected_groups);die();
         
         // Get the available member groups
         if (!isset( $SESS->cache['vz_members']['groups']['all'] ))
         {
             $member_groups = array();
             $result = $DB->query("SELECT group_title, group_id FROM exp_member_groups WHERE site_id = 1")->result;
+            // We need it in key-value form for the select helper functions
             foreach ($result as $item)
             {
                 $member_groups[array_pop($item)] = array_pop($item);
@@ -142,7 +142,7 @@ class Vz_members extends Fieldframe_Fieldtype {
         // Get the members in the selected member groups
         if ( !isset($SESS->cache['vz_members']['in_groups'][$member_groups]) )
         {
-            $query = $DB->query("
+            $SESS->cache['vz_members']['in_groups'][$member_groups] = $DB->query("
                 SELECT
                     exp_members.member_id AS member_id,
                     exp_members.screen_name AS screen_name,
@@ -158,8 +158,7 @@ class Vz_members extends Fieldframe_Fieldtype {
                     exp_member_groups.group_id IN ($member_groups) AND exp_member_groups.site_id = 1
                 ORDER BY 
                     exp_member_groups.group_id ASC, exp_members.screen_name ASC
-            ");
-            $SESS->cache['vz_members']['in_groups'][$member_groups] = $query->result;
+            ")->result;
         }
         $members = $SESS->cache['vz_members']['in_groups'][$member_groups];
     
@@ -174,6 +173,7 @@ class Vz_members extends Fieldframe_Fieldtype {
                 $selected_members = array_shift($selected_members);
             }
             
+            // Construct the select box markup
             $r = $DSP->input_select_header($field_name);
             $selected = (!$selected_members) ? 1 : 0;
             $r .= $DSP->input_select_option('', '&mdash;', $selected) . NL;
@@ -241,10 +241,9 @@ class Vz_members extends Fieldframe_Fieldtype {
                 label.vz_member input { display:none }
             ');
             $this->insert_js('jQuery(document).ready(function($) {
-                $(".vz_member input")
-                    .live("click", function() {
-                        $(this).parent().toggleClass("checked");
-                    });
+                $(".vz_member input").live("click", function() {
+                    $(this).parent().toggleClass("checked");
+                });
             });');
             
             // Clear the floats
@@ -310,13 +309,12 @@ class Vz_members extends Fieldframe_Fieldtype {
         if ( !isset($SESS->cache['vz_members']['members'][$member_list][$orderby][$sort]) )
         {
             // Get the names of the members
-            $query = $DB->query("
+            $SESS->cache['vz_members']['members'][$member_list][$orderby][$sort] = $DB->query("
                 SELECT member_id, group_id, username, screen_name
                 FROM exp_members 
                 WHERE member_id IN ($member_list)
                 ORDER BY $orderby $sort
-            ");
-            $SESS->cache['vz_members']['members'][$member_list][$orderby][$sort] = $query->result;
+                ")->result;
         }
         
         return $SESS->cache['vz_members']['members'][$member_list][$orderby][$sort];
@@ -422,7 +420,7 @@ class Vz_members extends Fieldframe_Fieldtype {
                 	SELECT member_id
                 	FROM exp_members 
                 	WHERE group_id IN (".$params['groups'].")
-                ")->result;
+                    ")->result;
             }
             $supers = $SESS->cache['vz_members']['groups'][$params['groups']];
             
