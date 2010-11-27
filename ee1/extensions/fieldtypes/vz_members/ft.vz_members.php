@@ -209,7 +209,7 @@ class Vz_members extends Fieldframe_Fieldtype {
                     
                     // Output the group header
                     $r .= '<div style="clear:left"></div>';
-                    $r .= $SD->label('<strong>'.$member['group_title'].':</strong>');
+                    $r .= '<div class="defaultBold vz_members_group">'.$member['group_title'].':</div>';
             	}
             
                 // Is it selected?
@@ -234,6 +234,7 @@ class Vz_members extends Fieldframe_Fieldtype {
             
             // Make it pretty
             $this->insert_css('
+                div.vz_members_group { float:left; height:14px; line-height:14px !important; margin:3px 10px 7px 0; font-size:12px; }
                 label.vz_member { float:left; height:14px; line-height:14px !important; margin:3px 10px 7px 0; padding: 2px 10px; border:1px solid #B6C0C2; -moz-border-radius:9px; border-radius:9px; text-shadow:0 1px #fff; background:#ebf1f7; -webkit-box-shadow:inset 0 2px 3px rgba(255,255,255,0.8); -moz-box-shadow:inset 0 2px 3px rgba(255,255,255,0.8); box-shadow:inset 0 2px 3px rgba(255,255,255,0.8); cursor:pointer; white-space:nowrap; }
                 label.vz_member:hover, label.vz_member:focus { background:#f7fafc; }
                 label.vz_member.checked { background:#c6d0db; border-color:#a7b4c2; text-shadow: 0 0 0 #000; -webkit-box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); -moz-box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); }
