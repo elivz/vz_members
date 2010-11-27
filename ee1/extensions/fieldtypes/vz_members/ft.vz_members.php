@@ -319,7 +319,7 @@ class Vz_members extends Fieldframe_Fieldtype {
             if (is_array($field_data))
             {
                 // Multiple members are selected
-                $separator = ($params['separator']) ? $params['separator'] : '|';
+                $separator = isset($params['separator']) ? $params['separator'] : '|';
                 return implode($separator, $field_data);
             }
             else
@@ -359,7 +359,7 @@ class Vz_members extends Fieldframe_Fieldtype {
             }
             
             // Backsapce parameter
-            if ($params['backspace'])
+            if (isset($params['backspace']))
             {
                 $r = substr($r, 0, -$params['backspace']);
             }
@@ -384,13 +384,14 @@ class Vz_members extends Fieldframe_Fieldtype {
         }
         
         // Output the list
-        $separator = ($params['separator']) ? $params['separator'] : ', ';
+        $separator = isset($params['separator']) ? $params['separator'] : ', ';
         return implode($separator, $member_names);
     }
   
   
     /**
-    * is_allowed
+    * Checks the intersection between the selected members and a
+    * member or list of members 
     */
     function is_allowed($params, $tagdata, $field_data, $field_settings)
     {
@@ -402,25 +403,22 @@ class Vz_members extends Fieldframe_Fieldtype {
         if ( isset($params['groups']) )
         {
             // Get all the users in those groups
-            if (!isset( $SESS->cache['vz_members']['groups'][$params['groups']] ))
+            if ( !isset($SESS->cache['vz_members']['groups'][$params['groups']]) )
             {
                 $SESS->cache['vz_members']['groups'][$params['groups']] = $DB->query("
-                	SELECT member_id, group_id
+                	SELECT member_id
                 	FROM exp_members 
                 	WHERE group_id IN (".$params['groups'].")
-                ");
+                ")->result;
             }
             $supers = $SESS->cache['vz_members']['groups'][$params['groups']];
             
             // Separate out the member_ids
-            foreach ($supers->result as $super)
+            foreach ($supers as $super)
             {
                 $candidates[] = $super['member_id'];
             }
         }
-          
-        // Remove duplicates
-        $candidates = array_unique($candidates);
         
         // Are there any matches between the two?
         $isAllowed = count(array_intersect($candidates, $allowed));
@@ -436,6 +434,5 @@ class Vz_members extends Fieldframe_Fieldtype {
     }
   
 }
-
 
 /* End of file ft.vz_members.php */
