@@ -126,11 +126,13 @@ class Vz_members extends Fieldframe_Fieldtype {
     function _create_user_list($field_name, $selected_members, $member_groups, $mode)
     {
         global $DB, $DSP, $LANG, $SESS;
+        $SD = new Fieldframe_SettingsDisplay();
         
         // If there are no member groups selected, don't bother
-        if (!$member_groups)
+        if (empty($member_groups))
         {
-            return $DSP->qdiv('highlight_alt', $LANG->line('no_member_groups'));
+            $LANG->fetch_language_file('vz_members');
+            return $DSP->qdiv('highlight', $LANG->line('no_member_groups'));
         }
         
         // Flatten the list of member groups csv
@@ -138,9 +140,6 @@ class Vz_members extends Fieldframe_Fieldtype {
         {
             $member_groups = implode(',', $member_groups);
         }
-        
-        // Initialize a new instance of SettingsDisplay
-        $SD = new Fieldframe_SettingsDisplay();
 	    
         // Get the members in the selected member groups
         if (!isset( $SESS->cache['vz_members']['in_groups'][$member_groups] ))
@@ -172,21 +171,24 @@ class Vz_members extends Fieldframe_Fieldtype {
         if ($mode == 'single')
         {
             // Get the first selected member if there are more than one
-            if (is_array($selected_members)) $selected_members = array_shift($selected_members);
+            if (is_array($selected_members))
+            {
+                $selected_members = array_shift($selected_members);
+            }
             
             $r = $DSP->input_select_header($field_name);
             $selected = (!$selected_members) ? 1 : 0;
             $r .= $DSP->input_select_option('', '&mdash;', $selected) . NL;
-            foreach($members AS $member)
+            foreach ($members as $member)
             {
                 // If we are moving on to a new group
-                if($current_group != $member['group_id'])
+                if ($current_group != $member['group_id'])
                 {
                     // Output the group header
                     if ($current_group) $r .= '</optgroup>' . NL;
                     $r .= '<optgroup label="'.$member['group_title'].'">' . NL;
                     
-                    // Set the current group
+                    // Set the new current group
                     $current_group = $member['group_id'];
                 }
             
@@ -197,9 +199,9 @@ class Vz_members extends Fieldframe_Fieldtype {
             $r .= '</optgroup>';
             $r .= $DSP->input_select_footer();
         }
-        else
+        else // Multi-select mode
         {
-            foreach ($members AS $member)
+            foreach ($members as $member)
             {
             	// If we are moving on to a new group
             	if ($current_group != $member['group_id'])
@@ -225,8 +227,8 @@ class Vz_members extends Fieldframe_Fieldtype {
                 // Output the checkbox
                 $r .= '<label style="display:block; float:left; margin:3px 15px 7px 0; white-space:nowrap;">'
                     . $DSP->input_checkbox($field_name.'[]', $member['member_id'], $checked)
-                    . NBS.$member['screen_name']
-                    . '</label> ';
+                    . NBS . $member['screen_name']
+                    . '</label>';
         	}
         	
             // Fool the form into working
