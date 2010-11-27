@@ -50,31 +50,29 @@ class Vz_members extends Fieldframe_Fieldtype {
         'multiple'  => 'mode_multiple'
     );
 	
-  
+	
     /**
     * Member Groups Select
     */
-    function _member_groups_select($selected_groups)
+    function _get_member_groups($selected_groups)
     {
-        global $DB, $DSP;
+        global $DB, $SESS;
+        $SD = new Fieldframe_SettingsDisplay();
+        //var_dump($selected_groups);die();
         
         // Get the available member groups
         if (!isset( $SESS->cache['vz_members']['groups']['all'] ))
         {
-            $SESS->cache['vz_members']['groups']['all'] = $DB->query("SELECT group_title, group_id FROM exp_member_groups WHERE site_id = 1")->result;
+            $member_groups = array();
+            $result = $DB->query("SELECT group_title, group_id FROM exp_member_groups WHERE site_id = 1")->result;
+            foreach ($result as $item)
+            {
+                $member_groups[array_pop($item)] = array_pop($item);
+            }
+            $SESS->cache['vz_members']['groups']['all'] = $member_groups;
         }
-        $member_groups = $SESS->cache['vz_members']['groups']['all'];
         
-        // Construct the select list of member groups
-        $r = $DSP->input_select_header('member_groups[]', 'y', ($member_groups->num_rows < 10 ? $member_groups->num_rows : 10));
-        foreach($member_groups as $member_group)
-        {
-            $selected = in_array($member_group['group_id'], $selected_groups) ? 1 : 0;
-            $r .= $DSP->input_select_option($member_group['group_id'], $member_group['group_title'], $selected);
-        }
-        $r .= $DSP->input_select_footer();
-        
-        return $r;
+        return $SESS->cache['vz_members']['groups']['all'];
     }
   
   
@@ -86,13 +84,17 @@ class Vz_members extends Fieldframe_Fieldtype {
         // Initialize a new instance of SettingsDisplay
         $SD = new Fieldframe_SettingsDisplay();
         
-        $cell1 = $SD->label('mode_label')
-            . $SD->select('mode', $field_settings['mode'], $this->modes);
+        $row1 = array(
+            $SD->label('mode_label'),
+            $SD->select('mode', $field_settings['mode'], $this->modes)
+        );
     
-		$cell2 = $r = $SD->label('member_groups_label')
-            . $this->_member_groups_select($field_settings['member_groups']);
+		$row2 = array(
+            $SD->label('member_groups_label'),
+            $SD->multiselect('member_groups[]', $field_settings['member_groups'], $this->_get_member_groups())
+        );
 		
-		return array('cell1' => $cell1, 'cell2' => $cell2);
+		return array('rows' => array( $row1, $row2 ));
 	}
 	
     
@@ -101,20 +103,20 @@ class Vz_members extends Fieldframe_Fieldtype {
 	 */
 	function display_cell_settings($cell_settings)
 	{
-        global $DSP, $LANG;
+        global $LANG;
         $SD = new Fieldframe_SettingsDisplay();
         
-        return '<label class="itemWrapper">'
-           . $LANG->line('mode_label')
-           . '<br/>'
-           . $SD->select('mode', $cell_settings['mode'], $this->modes)
-           . '</label>'
-           . '<br/>'
-           . '<label class="itemWrapper">'
-           . $LANG->line('member_groups_label')
-           . '<br/>'
-           . $this->_member_groups_select($cell_settings['member_groups'])
-           . '</label>';
+        $row1 = array(
+            $LANG->line('mode_label_cell'),
+            $SD->select('mode', $cell_settings['mode'], $this->modes)
+        );
+    
+		$row2 = array(
+            $LANG->line('member_groups_label_cell'),
+            $SD->multiselect('member_groups[]', $cell_settings['member_groups'], $this->_get_member_groups())
+        );
+		
+		return array( $row1, $row2 );
 	}
 	
 	
@@ -123,7 +125,7 @@ class Vz_members extends Fieldframe_Fieldtype {
 	 */
     function _create_user_list($field_name, $selected_members, $member_groups, $mode)
     {
-        global $DB, $DSP, $LANG;
+        global $DB, $DSP, $LANG, $SESS;
         
         // If there are no member groups selected, don't bother
         if (!$member_groups)
@@ -300,7 +302,6 @@ class Vz_members extends Fieldframe_Fieldtype {
                 ORDER BY $orderby $sort
             ");
             $SESS->cache['vz_members']['members'][$member_list][$orderby][$sort] = $query->result;
-            echo 'boom!';
         }
         
         return $SESS->cache['vz_members']['members'][$member_list][$orderby][$sort];
@@ -391,7 +392,7 @@ class Vz_members extends Fieldframe_Fieldtype {
     */
     function is_allowed($params, $tagdata, $field_data, $field_settings)
     {
-        global $DB;
+        global $DB, $SESS;
         
         $allowed = is_array($field_data) ? $field_data : array($field_data);
         $candidates = explode('|', $params['members']);
