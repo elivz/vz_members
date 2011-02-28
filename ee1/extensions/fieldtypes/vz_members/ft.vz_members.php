@@ -20,7 +20,7 @@ class Vz_members extends Fieldframe_Fieldtype {
      */
     public $info = array(
         'name'             => 'VZ Members',
-        'version'          => '1.0.0',
+        'version'          => '1.0.1',
         'desc'             => 'Select members from one or more member groups',
         'docs_url'         => 'http://elivz.com/blog/single/vz_members/',
         'versions_xml_url' => 'http://elivz.com/files/versions.xml'
@@ -241,14 +241,14 @@ class Vz_members extends Fieldframe_Fieldtype {
             
             // Make it pretty
             $this->insert_css('
-                div.vz_members_group { float:left; height:14px; line-height:14px !important; margin:3px 10px 7px 0; font-size:12px; }
-                label.vz_member { float:left; height:14px; line-height:14px !important; margin:3px 10px 7px 0; padding: 2px 10px; border:1px solid #B6C0C2; -moz-border-radius:9px; border-radius:9px; text-shadow:0 1px #fff; background:#ebf1f7; -webkit-box-shadow:inset 0 2px 3px rgba(255,255,255,0.8); -moz-box-shadow:inset 0 2px 3px rgba(255,255,255,0.8); box-shadow:inset 0 2px 3px rgba(255,255,255,0.8); cursor:pointer; white-space:nowrap; }
-                label.vz_member:hover, label.vz_member:focus { background:#f7fafc; -webkit-box-shadow: 0 0 5px #abd9f4; -moz-box-shadow: 0 0 5px #abd9f4; box-shadow: 0 0 5px #abd9f4; }
-                label.vz_member.checked { background:#b6babf; color:#fff; text-shadow:0 -1px rgba(0,0,0,0.2); background: -webkit-gradient(linear, 0 0, 0 100%, from(#aaaeb3), to(#b6babf)); background: -moz-linear-gradient(top, #aaaeb3, #b6babf); border-color:#a7b4c2; -webkit-box-shadow:inset 0 1px rgba(0,0,0,0.1); -moz-box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); }
-                label.vz_member input { display:none }
+                div.vz_members_group { float:left; height:18px; line-height:18px !important; margin:3px 10px 7px 0; font-size:12px; }
+                label.vz_member { float:left; height:14px; line-height:14px !important; margin:3px 10px 7px 0; padding:2px 10px; border:1px solid #B6C0C2; -moz-border-radius:9px; border-radius:9px; text-shadow:0 1px #fff; background:#ebf1f7; -webkit-box-shadow:inset 0 2px 3px rgba(255,255,255,0.8); -moz-box-shadow:inset 0 2px 3px rgba(255,255,255,0.8); box-shadow:inset 0 2px 3px rgba(255,255,255,0.8); cursor:pointer; white-space:nowrap; }
+                label.vz_member:hover, label.vz_member:focus { background:#f7fafc; -webkit-box-shadow:0 0 5px #abd9f4; -moz-box-shadow:0 0 5px #abd9f4; box-shadow:0 0 5px #abd9f4; }
+                label.vz_member.checked { background:#b6babf; color:#fff; text-shadow:0 -1px rgba(0,0,0,0.2); background:-webkit-gradient(linear, 0 0, 0 100%, from(#aaaeb3), to(#b6babf)); background:-moz-linear-gradient(top, #aaaeb3, #b6babf); border-color:#a7b4c2; -webkit-box-shadow:inset 0 1px rgba(0,0,0,0.1); -moz-box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); }
+                label.vz_member input { position:absolute; left:-9999px; }
             ');
             $this->insert_js('jQuery(document).ready(function($) {
-                $(".vz_member input").live("click", function() {
+                $(".vz_member input").live("change", function() {
                     $(this).parent().toggleClass("checked");
                 });
             });');
