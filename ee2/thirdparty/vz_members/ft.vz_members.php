@@ -11,8 +11,8 @@
 class Vz_members_ft extends EE_Fieldtype {
 
     public $info = array(
-        'name'             => 'VZ Members',
-        'version'          => '1.0.1',
+        'name'      => 'VZ Members',
+        'version'   => '1.0.2',
     );
     
     /**
@@ -424,10 +424,14 @@ class Vz_members_ft extends EE_Fieldtype {
     * Checks the intersection between the selected members and a
     * member or list of members 
     */
-    function replace_is_allowed($field_data, $params=array(), $tagdata=FALSE)
+    function _is_allowed($params, $field_data)
     {
         $allowed = explode('|', $field_data);
-        $candidates = explode('|', $params['members']);
+        
+        if ( isset($params['members']) )
+        {
+            $candidates = explode('|', $params['members']);
+        }
         
         if ( isset($params['groups']) )
         {
@@ -449,17 +453,24 @@ class Vz_members_ft extends EE_Fieldtype {
             }
         }
         
-        // Are there any matches between the two?
-        $isAllowed = count(array_intersect($candidates, $allowed));
+        // Get the current user, if necessary
+        if ( isset($params['current_member']) )
+        {
+            $candidates[] = $this->EE->session->userdata['member_id'];
+        }
         
-        if (!$tagdata) // Single tag
-        {
-            return $isAllowed ? TRUE : FALSE;
-        }
-        else // Tag pair
-        {
-            return $isAllowed ? $tagdata : '';
-        }
+        // Are there any matches between the two?
+        return (count(array_intersect($candidates, $allowed)) > 0);
+    }
+    
+    function replace_is_allowed($data, $params = array(), $tagdata = FALSE)
+    {
+        return $this->_is_allowed($params, $data) ? TRUE : FALSE;
+    }
+    
+    function replace_is_not_allowed($data, $params = array(), $tagdata = FALSE)
+    {
+        return $this->_is_allowed($params, $data) ? FALSE : TRUE;
     }
   
 }

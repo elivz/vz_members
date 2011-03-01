@@ -20,7 +20,7 @@ class Vz_members extends Fieldframe_Fieldtype {
      */
     public $info = array(
         'name'             => 'VZ Members',
-        'version'          => '1.0.1',
+        'version'          => '1.0.2',
         'desc'             => 'Select members from one or more member groups',
         'docs_url'         => 'http://elivz.com/blog/single/vz_members/',
         'versions_xml_url' => 'http://elivz.com/files/versions.xml'
@@ -417,12 +417,16 @@ class Vz_members extends Fieldframe_Fieldtype {
     * Checks the intersection between the selected members and a
     * member or list of members 
     */
-    function is_allowed($params, $tagdata, $field_data, $field_settings)
+    function _is_allowed($params, $field_data)
     {
         global $DB, $SESS;
         
         $allowed = explode('|', $field_data);
-        $candidates = explode('|', $params['members']);
+        
+        if ( isset($params['members']) )
+        {
+            $candidates = explode('|', $params['members']);
+        }
         
         if ( isset($params['groups']) )
         {
@@ -444,16 +448,41 @@ class Vz_members extends Fieldframe_Fieldtype {
             }
         }
         
+        // Get the current user, if necessary
+        if ( isset($params['current_member']) )
+        {
+            $candidates[] = $SESS->userdata['member_id'];
+        }
+        
         // Are there any matches between the two?
-        $isAllowed = count(array_intersect($candidates, $allowed));
+        return (count(array_intersect($candidates, $allowed)) > 0);
+    }
+    
+    function is_allowed($params, $tagdata, $field_data, $field_settings)
+    {
+        $is_allowed = $this->_is_allowed($params, $field_data);
         
         if (!$tagdata) // Single tag
         {
-            return $isAllowed ? TRUE : FALSE;
+            return $is_allowed ? TRUE : FALSE;
         }
         else // Tag pair
         {
-            return $isAllowed ? $tagdata : '';
+            return $is_allowed ? $tagdata : '';
+        }
+    }
+    
+    function is_not_allowed($params, $tagdata, $field_data, $field_settings)
+    {
+        $is_not_allowed = !$this->_is_allowed($params, $field_data);
+        
+        if (!$tagdata) // Single tag
+        {
+            return $is_not_allowed ? TRUE : FALSE;
+        }
+        else // Tag pair
+        {
+            return $is_not_allowed ? $tagdata : '';
         }
     }
   
