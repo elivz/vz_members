@@ -4,7 +4,7 @@
  * VZ Members Class
  *
  * @author    Eli Van Zoeren <eli@elivz.com>
- * @copyright Copyright (c) 2009-2010 Eli Van Zoeren
+ * @copyright Copyright (c) 2009-2011 Eli Van Zoeren
  * @license   http://creativecommons.org/licenses/by-sa/3.0/ Attribution-Share Alike 3.0 Unported
  */
  
@@ -12,7 +12,7 @@ class Vz_members_ft extends EE_Fieldtype {
 
     public $info = array(
         'name'      => 'VZ Members',
-        'version'   => '1.0.2',
+        'version'   => '1.0.3',
     );
     
     /**
@@ -46,11 +46,6 @@ class Vz_members_ft extends EE_Fieldtype {
     }
     
     var $has_array_data = TRUE;
-	    
-    public $default_cell_settings = array(
-        'member_groups' => array(),
-        'mode'          => 'single'
-    );
     
     protected function modes()
     {
@@ -79,13 +74,13 @@ class Vz_members_ft extends EE_Fieldtype {
                 label.vz_member.checked { background:#b6babf; color:#fff; text-shadow:0 -1px rgba(0,0,0,0.2); background:-webkit-gradient(linear, 0 0, 0 100%, from(#aaaeb3), to(#b6babf)); background:-moz-linear-gradient(top, #aaaeb3, #b6babf); border-color:#a7b4c2; -webkit-box-shadow:inset 0 1px rgba(0,0,0,0.1); -moz-box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); box-shadow:inset 0 1px 3px rgba(0,0,0,0.1); }
                 label.vz_member input { position:absolute; left:-9999px; }
             </style>');
-            $this->EE->cp->add_to_foot('<script type="text/javascript">
-                jQuery(document).ready(function($) {
+            $this->EE->javascript->output(
+                'jQuery(document).ready(function($) {
                     $(".vz_member input").live("change", function() {
                         $(this).parent().toggleClass("checked");
                     });
-                });
-            </script>');
+                });'
+            );
 			
 			$this->cache['jscss'] = TRUE;
 		}
@@ -158,8 +153,8 @@ class Vz_members_ft extends EE_Fieldtype {
     function save_settings($data)
     {
     	return array(
-    		'mode'	=> $this->EE->input->post('mode'),
-    		'member_groups'		=> $this->EE->input->post('member_groups')
+    		'mode' => $this->EE->input->post('mode'),
+    		'member_groups' => $this->EE->input->post('member_groups')
     	);
     }
 	
@@ -176,9 +171,18 @@ class Vz_members_ft extends EE_Fieldtype {
 	/**
 	 * Create the user checkboxes or select list
 	 */
-    function _create_user_list($field_name, $selected_members, $member_groups, $mode)
+    function _create_user_list($field_name, $selected_members)
     {
 		$this->EE->load->helper('form');
+		
+		// Not sure why this is needed... Safecracker doesn't return the correct values for $this->settings
+		if (isset($this->settings['field_settings']) && $field_settings = @unserialize(base64_decode($this->settings['field_settings'])))
+		{
+			$this->settings = array_merge($this->settings, $field_settings);
+		}
+		
+		$member_groups = $this->settings['member_groups'];
+		$mode = $this->settings['mode'];
         
         // If there are no member groups selected, don't bother
         if (empty($member_groups))
@@ -187,7 +191,7 @@ class Vz_members_ft extends EE_Fieldtype {
             return '<div class="highlight">' . $this->EE->lang->line('no_member_groups') . '</div>';
         }
         
-        // Flatten the list of member groups csv
+        // Flatten the list of member groups to csv
         if (is_array($member_groups))
         {
             $member_groups = implode(',', $member_groups);
@@ -298,7 +302,7 @@ class Vz_members_ft extends EE_Fieldtype {
      */
     function display_field($field_data)
     {
-        return $this->_create_user_list($this->field_name, $field_data, $this->settings['member_groups'], $this->settings['mode']);
+        return $this->_create_user_list($this->field_name, $field_data);
     }
 	
     
@@ -307,7 +311,7 @@ class Vz_members_ft extends EE_Fieldtype {
      */
     function display_cell($cell_data)
     {
-        return $this->_create_user_list($this->cell_name, $cell_data, $this->settings['member_groups'], $this->settings['mode']);
+        return $this->_create_user_list($this->cell_name, $cell_data);
     }
 
     
