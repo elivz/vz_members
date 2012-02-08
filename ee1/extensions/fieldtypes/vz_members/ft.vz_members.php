@@ -20,7 +20,7 @@ class Vz_members extends Fieldframe_Fieldtype {
      */
     public $info = array(
         'name'             => 'VZ Members',
-        'version'          => '1.0.2',
+        'version'          => '1.0.4',
         'desc'             => 'Select members from one or more member groups',
         'docs_url'         => 'http://elivz.com/blog/single/vz_members/',
         'versions_xml_url' => 'http://elivz.com/files/versions.xml'
@@ -106,7 +106,7 @@ class Vz_members extends Fieldframe_Fieldtype {
 	 */
 	function display_field_settings($field_settings)
 	{
-		return array( 'rows' => $this->_get_settings($field_settings) );
+		return array('rows' => $this->_get_settings($field_settings));
 	}
 	
     
@@ -400,6 +400,9 @@ class Vz_members extends Fieldframe_Fieldtype {
     {
         // Get the member info
         $members = $this->_get_member_names($field_data, $params['orderby'], $params['sort']);
+        
+        // Initialize the member_names array
+        $member_nammes = array();
         
         // Put the names in an array
         foreach ($members as $member)
