@@ -412,6 +412,9 @@ class Vz_members_ft extends EE_Fieldtype {
         // Get the member info
         $members = $this->_get_member_names($field_data, $params['orderby'], $params['sort']);
         
+        // Initialize the member_names array
+        $member_nammes = array();
+        
         // Put the names in an array
         foreach ($members as $member)
         {
