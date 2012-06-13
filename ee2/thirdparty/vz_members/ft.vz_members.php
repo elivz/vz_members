@@ -12,7 +12,7 @@ class Vz_members_ft extends EE_Fieldtype {
 
     public $info = array(
         'name'      => 'VZ Members',
-        'version'   => '1.0.4',
+        'version'   => '1.0.5',
     );
     
     /**
@@ -342,7 +342,7 @@ class Vz_members_ft extends EE_Fieldtype {
     /**
     * Get names of a list of members
     */
-    function _get_member_names($members, $orderby, $sort)
+    function _get_member_names($members, $orderby='', $sort='')
     {
         // Prepare parameters for SQL query
         $member_list = str_replace('|', ',', $members);
@@ -376,8 +376,12 @@ class Vz_members_ft extends EE_Fieldtype {
     	}
     	else // Tag pair
     	{
+            // Set default parameters
+            $orderby = isset($params['orderby']) ? $params['orderby'] : '';
+            $sort = isset($params['sort']) ? $params['sort'] : '';
+
             // Get the member info
-            $members = $this->_get_member_names($field_data, $params['orderby'], $params['sort']);
+            $members = $this->_get_member_names($field_data, $orderby, $sort);
             
             $variables = array();
             foreach ($members as $member)
@@ -409,8 +413,12 @@ class Vz_members_ft extends EE_Fieldtype {
      */
     function replace_names($field_data, $params=array(), $tagdata=FALSE)
     {
+        // Set default parameters
+        $orderby = isset($params['orderby']) ? $params['orderby'] : '';
+        $sort = isset($params['sort']) ? $params['sort'] : '';
+
         // Get the member info
-        $members = $this->_get_member_names($field_data, $params['orderby'], $params['sort']);
+        $members = $this->_get_member_names($field_data, $orderby, $sort);
         
         // Initialize the member_names array
         $member_nammes = array();

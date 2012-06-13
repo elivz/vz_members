@@ -20,7 +20,7 @@ class Vz_members extends Fieldframe_Fieldtype {
      */
     public $info = array(
         'name'             => 'VZ Members',
-        'version'          => '1.0.4',
+        'version'          => '1.0.5',
         'desc'             => 'Select members from one or more member groups',
         'docs_url'         => 'http://elivz.com/blog/single/vz_members/',
         'versions_xml_url' => 'http://elivz.com/files/versions.xml'
@@ -353,9 +353,13 @@ class Vz_members extends Fieldframe_Fieldtype {
     	else // Tag pair
     	{
             global $TMPL;
-            
+
+            // Set default parameters
+            $orderby = isset($params['orderby']) ? $params['orderby'] : '';
+            $sort = isset($params['sort']) ? $params['sort'] : '';
+
             // Get the member info
-            $members = $this->_get_member_names($field_data, $params['orderby'], $params['sort']);
+            $members = $this->_get_member_names($field_data, $orderby, $sort);
             
             // Prepare for {switch} and {count} tags
             $this->prep_iterators($tagdata);
@@ -398,8 +402,12 @@ class Vz_members extends Fieldframe_Fieldtype {
      */
     function names($params, $tagdata, $field_data, $field_settings)
     {
+        // Set default parameters
+        $orderby = isset($params['orderby']) ? $params['orderby'] : '';
+        $sort = isset($params['sort']) ? $params['sort'] : '';
+
         // Get the member info
-        $members = $this->_get_member_names($field_data, $params['orderby'], $params['sort']);
+        $members = $this->_get_member_names($field_data, $orderby, $sort);
         
         // Initialize the member_names array
         $member_nammes = array();
