@@ -12,8 +12,10 @@ class Vz_members_ft extends EE_Fieldtype {
 
     public $info = array(
         'name'      => 'VZ Members',
-        'version'   => '1.0.5',
+        'version'   => '1.0.6',
     );
+
+    var $has_array_data = TRUE;
 
     /**
      * Fieldtype Constructor
@@ -45,15 +47,14 @@ class Vz_members_ft extends EE_Fieldtype {
         );
     }
 
-    var $has_array_data = TRUE;
-
-    protected function modes()
+    protected function _modes()
     {
         $this->EE->lang->loadfile('vz_members');
 
         return array(
-            'single'    => $this->EE->lang->line('mode_single'),
-            'multiple'  => $this->EE->lang->line('mode_multiple')
+            'single'      => $this->EE->lang->line('mode_single'),
+            'multiple'    => $this->EE->lang->line('mode_multiple'),
+            'multiselect' => $this->EE->lang->line('mode_multiselect')
         );
     }
 
@@ -63,7 +64,7 @@ class Vz_members_ft extends EE_Fieldtype {
      * but only the first time
      *
      */
-    private function _include_jscss()
+    protected function _include_jscss()
     {
         if ( !isset($this->cache['jscss']) )
         {
@@ -90,7 +91,7 @@ class Vz_members_ft extends EE_Fieldtype {
     /**
     * Member Groups Select
     */
-    private function _get_member_groups()
+    protected function _get_member_groups()
     {
         // Get the available member groups
         if (!isset( $this->cache['groups']['all'] ))
@@ -125,7 +126,7 @@ class Vz_members_ft extends EE_Fieldtype {
         $mode = isset($settings['mode']) ? $settings['mode'] : 0;
         $row1 = array(
             $this->EE->lang->line('mode_label_cell'),
-            form_dropdown('mode', $this->modes(), $mode)
+            form_dropdown('mode', $this->_modes(), $mode)
         );
 
         $member_groups = isset($settings['member_groups']) ? $settings['member_groups'] : 0;
@@ -153,7 +154,7 @@ class Vz_members_ft extends EE_Fieldtype {
     function save_settings($data)
     {
         return array(
-            'mode' => $this->EE->input->post('mode'),
+            'mode'          => $this->EE->input->post('mode'),
             'member_groups' => $this->EE->input->post('member_groups')
         );
     }
@@ -176,7 +177,10 @@ class Vz_members_ft extends EE_Fieldtype {
         $this->EE->load->helper('form');
 
         // Not sure why this is needed... Safecracker doesn't return the correct values for $this->settings
-        if (isset($this->settings['field_settings']) && $field_settings = @unserialize(base64_decode($this->settings['field_settings'])))
+        if (
+            isset($this->settings['field_settings']) &&
+            $field_settings = @unserialize(base64_decode($this->settings['field_settings']))
+        )
         {
             $this->settings = array_merge($this->settings, $field_settings);
         }
@@ -229,14 +233,15 @@ class Vz_members_ft extends EE_Fieldtype {
             $selected_members = explode('|', $selected_members);
         }
 
-        if ($mode == 'single')
+        if ($mode == 'single' || $mode == 'multiselect')
         {
             // Get the first selected member if there are more than one
             $selected_members = array_shift($selected_members);
 
             // Construct the select box markup
-            $r = '<select name="' . $field_name . '">';
-            $r .= '<option value=""' . (!$selected_members ? ' selected="selected"' : '') . '>&mdash;</option>' . NL;
+            $r = '<select name="' . $field_name . '"';
+            $r .= $mode == 'multiselect' ? ' size="10" multiple="multiple"' : '';
+            $r .= '><option value=""' . (!$selected_members ? ' selected="selected"' : '') . '>&mdash;</option>' . NL;
             foreach ($members as $member)
             {
                 // If we are moving on to a new group
@@ -258,7 +263,7 @@ class Vz_members_ft extends EE_Fieldtype {
             $r .= '</optgroup>';
             $r .= '</select>';
         }
-        else // Multi-select mode
+        else // Checkbox mode
         {
             foreach ($members as $member)
             {
