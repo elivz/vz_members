@@ -12,7 +12,7 @@ class Vz_members_ft extends EE_Fieldtype {
 
     public $info = array(
         'name'      => 'VZ Members',
-        'version'   => '1.0.6',
+        'version'   => '1.0.7',
     );
 
     var $has_array_data = TRUE;
@@ -236,10 +236,13 @@ class Vz_members_ft extends EE_Fieldtype {
         if ($mode == 'single' || $mode == 'multiselect')
         {
             // Get the first selected member if there are more than one
-            $selected_members = array_shift($selected_members);
+            if ($mode == 'single')
+            {
+                $selected_members = array($selected_members[0]);
+            }
 
             // Construct the select box markup
-            $r = '<select name="' . $field_name . '"';
+            $r = '<select name="' . $field_name . ($mode == 'multiselect' ? '[]' : '') . '"';
             $r .= $mode == 'multiselect' ? ' size="10" multiple="multiple"' : '';
             $r .= '><option value=""' . (!$selected_members ? ' selected="selected"' : '') . '>&mdash;</option>' . NL;
             foreach ($members as $member)
@@ -257,7 +260,7 @@ class Vz_members_ft extends EE_Fieldtype {
 
                 // Output the option
                 $r .= '<option value="' . $member['member_id'] . '"'
-                    . ($member['member_id'] == $selected_members ? ' selected="selected"' : '') . '>'
+                    . (in_array($member['member_id'], $selected_members) ? ' selected="selected"' : '') . '>'
                     . $member['screen_name'] . '</option>' . NL;
             }
             $r .= '</optgroup>';
@@ -328,7 +331,7 @@ class Vz_members_ft extends EE_Fieldtype {
         // Remove the temporary element
         if (is_array($field_data))
         {
-           @array_pop($field_data);
+           unset($field_data['temp']);
            $field_data = implode('|', $field_data);
         }
         return $field_data;
