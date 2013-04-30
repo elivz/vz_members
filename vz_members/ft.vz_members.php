@@ -12,7 +12,7 @@ class Vz_members_ft extends EE_Fieldtype {
 
     public $info = array(
         'name'      => 'VZ Members',
-        'version'   => '1.0.7',
+        'version'   => '1.0.8',
     );
 
     var $has_array_data = TRUE;
