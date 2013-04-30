@@ -23,7 +23,7 @@ class Vz_members_ft extends EE_Fieldtype {
      */
     function Vz_members_ft()
     {
-        parent::EE_Fieldtype();
+        EE_Fieldtype::__construct();
 
         // Initialize the cache
         if (!isset($this->EE->session->cache['vz_members']))
