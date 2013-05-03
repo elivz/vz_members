@@ -331,7 +331,7 @@ class Vz_members_ft extends EE_Fieldtype {
         // Remove the temporary element
         if (is_array($field_data))
         {
-           unset($field_data['temp']);
+           $field_data = array_diff($field_data, array('temp'));
            $field_data = implode('|', $field_data);
         }
         return $field_data;
