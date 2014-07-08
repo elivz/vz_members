@@ -12,7 +12,7 @@ class Vz_members_ft extends EE_Fieldtype {
 
     public $info = array(
         'name'      => 'VZ Members',
-        'version'   => '1.0.8',
+        'version'   => '1.0.9',
     );
 
     var $has_array_data = TRUE;
@@ -334,7 +334,7 @@ class Vz_members_ft extends EE_Fieldtype {
            $field_data = array_diff($field_data, array('temp'));
            $field_data = implode('|', $field_data);
         }
-        return $field_data;
+        return '|'.$field_data.'|';
     }
 
 
@@ -378,6 +378,8 @@ class Vz_members_ft extends EE_Fieldtype {
      */
     function replace_tag($field_data, $params=array(), $tagdata=FALSE)
     {
+        $field_data = trim($field_data, '|');
+
         if (!$tagdata) // Single tag
         {
             return $field_data;
@@ -449,7 +451,7 @@ class Vz_members_ft extends EE_Fieldtype {
     */
     function _is_allowed($params, $field_data)
     {
-        $allowed = explode('|', $field_data);
+        $allowed = array_filter(explode('|', $field_data));
 
         if ( isset($params['members']) )
         {
