@@ -55,13 +55,13 @@ If you need more control over the output, use the tag pair.
 Finding Entries by Selected Member
 ----------------------------------
 
-If you want to find the entries that have had a particular member assigned to them, you can use the [search parameter](http://ellislab.com/expressionengine/user-guide/add-ons/channel/channel_entries.html#search-field-name) of the Channel Entries tag pair, like this:
+If you want to find the entries that have had a particular member assigned to them, you can use the [search parameter](http://ellislab.com/expressionengine/user-guide/add-ons/channel/channel_entries.html#search-field-name) of the Channel Entries tag pair with the `\W` option, like this:
 
-    {exp:channel:entries channel="news" search:member_field="|6|"}
+    {exp:channel:entries channel="news" search:member_field="6\W"}
         ...
     {/exp:channel:entries}
 
-In this example, `6` is the ID of the member you are looking for. Please note the vertical bars around the member id, which are required to prevent matching multiple-digit member ids which include the id you are searching (`16`, for example).
+In this example, `6` is the ID of the member you are looking for. The `\W` makes it match on the individual member IDs in the field, so it won't find partial matches (e.g. you don't want `6` to match member ID `16`).
 
 Installation
 ------------

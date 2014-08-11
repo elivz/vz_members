@@ -12,7 +12,7 @@ class Vz_members_ft extends EE_Fieldtype {
 
     public $info = array(
         'name'      => 'VZ Members',
-        'version'   => '1.0.9',
+        'version'   => '1.0.10',
     );
 
     var $has_array_data = TRUE;
@@ -334,7 +334,7 @@ class Vz_members_ft extends EE_Fieldtype {
            $field_data = array_diff($field_data, array('temp'));
            $field_data = implode('|', $field_data);
         }
-        return '|'.$field_data.'|';
+        return $field_data;
     }
 
 
